@@ -1,0 +1,331 @@
+---
+swagger: "2.0"
+info:
+  description: "We'll be here writing some things in order to make it work with data"
+  version: "0.0.1"
+  title: "First Approach to an GUARD API"
+  license:
+    name: "Apache 2.0"
+    url: "https://www.apache.org/licenses/LICENSE-2.0.html"
+host: "localhost"
+basePath: "/guard-api"
+schemes:
+- "http"
+paths:
+  /agents/register:
+    post:
+      summary: "Post a new GUARD Agent"
+      description: "Sets the the agent Security Properties"
+      operationId: "agents_register_post"
+      parameters:
+      - in: "body"
+        name: "agent"
+        required: false
+        schema:
+          $ref: "#/definitions/GuardAgent"
+      responses:
+        "204":
+          description: "get some data"
+        "422":
+          description: "An unexpedted error occured"
+          schema:
+            $ref: "#/definitions/Error"
+        "500":
+          description: "An unexpedted error occured"
+          schema:
+            $ref: "#/definitions/Error"
+      x-swagger-router-controller: "swagger_server.controllers.default_controller"
+  /agents:
+    get:
+      summary: "Gets the information of an Agent"
+      description: "Gets a list of Agents and their security properites"
+      operationId: "agents_get"
+      parameters:
+      - name: "page_size"
+        in: "query"
+        description: "Number of agents returned"
+        required: false
+        type: "integer"
+        default: 20
+        maximum: 100
+        exclusiveMaximum: false
+        minimum: 0
+        exclusiveMinimum: true
+        multipleOf: 10
+        format: "int32"
+      responses:
+        "200":
+          description: "Returns all agents data"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/GuardAgent"
+        "500":
+          description: "An unexpedted error occured"
+          schema:
+            $ref: "#/definitions/Error"
+      x-swagger-router-controller: "swagger_server.controllers.default_controller"
+  /agents/{id}:
+    get:
+      summary: "Gets the properties of an agent."
+      description: "Queries an agent"
+      operationId: "agents_id_get"
+      parameters:
+      - name: "id"
+        in: "path"
+        description: "The ID of an already registered agent"
+        required: true
+        type: "string"
+      responses:
+        "200":
+          description: "Retrun data of the queried Agent."
+          schema:
+            $ref: "#/definitions/GuardAgent"
+        "400":
+          description: "Object Not Found"
+          schema:
+            $ref: "#/definitions/Error"
+        "500":
+          description: "An unexpedted error occured"
+          schema:
+            $ref: "#/definitions/Error"
+      x-swagger-router-controller: "swagger_server.controllers.default_controller"
+    delete:
+      summary: "Deletes (unregisters) the Agent from the CB"
+      description: "Unsets the agent Security Properties"
+      operationId: "agents_id_delete"
+      parameters:
+      - name: "id"
+        in: "path"
+        description: "The ID of an already registered agent"
+        required: true
+        type: "string"
+      responses:
+        "204":
+          description: "Agent correctly registered."
+        "400":
+          description: "Object Not Found"
+          schema:
+            $ref: "#/definitions/Error"
+        "500":
+          description: "An unexpedted error occured"
+          schema:
+            $ref: "#/definitions/Error"
+      x-swagger-router-controller: "swagger_server.controllers.default_controller"
+  /agents/ping/{id}:
+    put:
+      summary: "Puts a ping to GUARD Agent"
+      description: "Sets a ping to the agent."
+      operationId: "agents_ping_id_put"
+      parameters:
+      - name: "id"
+        in: "path"
+        description: "The ID of an already registered agent"
+        required: true
+        type: "string"
+      responses:
+        "204":
+          description: "Ping Correctly processed"
+        "400":
+          description: "Object Not Found"
+          schema:
+            $ref: "#/definitions/Error"
+        "500":
+          description: "An unexpedted error occured"
+          schema:
+            $ref: "#/definitions/Error"
+      x-swagger-router-controller: "swagger_server.controllers.default_controller"
+definitions:
+  GuardAgent:
+    required:
+    - "configuration_properties"
+    - "data_schema"
+    - "id"
+    - "security_properties"
+    - "type"
+    properties:
+      id:
+        type: "string"
+      type:
+        type: "string"
+      configuration_properties:
+        $ref: "#/definitions/configuration_properties"
+      security_properties:
+        $ref: "#/definitions/security_properties"
+      data_schema:
+        $ref: "#/definitions/data_schema"
+    example:
+      configuration_properties:
+        metadata: {}
+        type: "type"
+        value:
+        - name: "name"
+          description: "description"
+          type: "type"
+          value: "value"
+        - name: "name"
+          description: "description"
+          type: "type"
+          value: "value"
+      security_properties:
+        type: "type"
+        value:
+          patch: "patch"
+          callback_url: "callback_url"
+          vendor: "vendor"
+          name: "name"
+          version: "version"
+      data_schema:
+        type: "type"
+        value: "http://example.com/aeiou"
+      id: "id"
+      type: "type"
+  security_properties:
+    type: "object"
+    properties:
+      type:
+        type: "string"
+      value:
+        $ref: "#/definitions/security_properties_value"
+      metadata:
+        $ref: "#/definitions/metadata"
+    description: "Basically, a set of security properties common to the Agents which\
+      \ will allow to validate things of the agent"
+    example:
+      type: "type"
+      value:
+        patch: "patch"
+        callback_url: "callback_url"
+        vendor: "vendor"
+        name: "name"
+        version: "version"
+  security_properties_value:
+    type: "object"
+    required:
+    - "callback_url"
+    - "name"
+    - "patch"
+    - "vendor"
+    - "version"
+    properties:
+      name:
+        type: "string"
+      version:
+        type: "string"
+        pattern: "[0-9]{1,4}.[0-9]{1,4}.[0-9]{1,4}"
+        x-regex: "[0-9]{1,4}.[0-9]{1,4}.[0-9]{1,4}"
+        x-modifiers: []
+      vendor:
+        type: "string"
+      patch:
+        type: "string"
+      callback_url:
+        type: "string"
+    example:
+      patch: "patch"
+      callback_url: "callback_url"
+      vendor: "vendor"
+      name: "name"
+      version: "version"
+  configuration_properties:
+    type: "object"
+    properties:
+      type:
+        type: "string"
+      value:
+        type: "array"
+        items:
+          $ref: "#/definitions/configuration_properties_value"
+      metadata:
+        $ref: "#/definitions/metadata"
+    description: "This is an array of the properties of the agent which can be manipulated\
+      \ at live time"
+    example:
+      metadata: {}
+      type: "type"
+      value:
+      - name: "name"
+        description: "description"
+        type: "type"
+        value: "value"
+      - name: "name"
+        description: "description"
+        type: "type"
+        value: "value"
+  configuration_properties_value:
+    type: "object"
+    required:
+    - "name"
+    - "value"
+    properties:
+      name:
+        type: "string"
+      type:
+        type: "string"
+      description:
+        type: "string"
+      value:
+        type: "string"
+    example:
+      name: "name"
+      description: "description"
+      type: "type"
+      value: "value"
+  data_schema:
+    type: "object"
+    properties:
+      type:
+        type: "string"
+      value:
+        type: "string"
+        format: "url"
+      metadata:
+        $ref: "#/definitions/metadata"
+    description: "This information shows the URL of the data schema that this agent\
+      \ will use to produce information"
+    example:
+      type: "type"
+      value: "http://example.com/aeiou"
+  metadata:
+    type: "object"
+    description: "An object with a format like this: {\"name\": {\"type\": \"...\"\
+      , \"value\": \"...\"}, ...}"
+  Error:
+    properties:
+      code:
+        type: "string"
+      message:
+        type: "string"
+parameters:
+  id:
+    name: "id"
+    in: "path"
+    description: "The ID of an already registered agent"
+    required: true
+    type: "string"
+  page_size:
+    name: "page_size"
+    in: "query"
+    description: "Number of agents returned"
+    required: false
+    type: "integer"
+    default: 20
+    maximum: 100
+    exclusiveMaximum: false
+    minimum: 0
+    exclusiveMinimum: true
+    multipleOf: 10
+    format: "int32"
+responses:
+  Standard500ErrorResponse:
+    description: "An unexpedted error occured"
+    schema:
+      $ref: "#/definitions/Error"
+  Standard400ErrorResponse:
+    description: "Object Not Found"
+    schema:
+      $ref: "#/definitions/Error"
+  Standard422ErrorResponse:
+    description: "Entity Non Processable"
+    schema:
+      $ref: "#/definitions/Error"
